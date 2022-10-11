@@ -60,8 +60,8 @@ sgenrand(unsigned long seed, struct mt19937p* config)
         config->mt[config->mti] = (69069 * config->mt[config->mti-1]) & 0xffffffff;
 }
 
-//double /* generating reals */
-unsigned long  /* for integer generation */
+double /* generating reals */
+//unsigned long  /* for integer generation */
 genrand(struct mt19937p* config)
 {
     unsigned long y;
@@ -94,6 +94,6 @@ genrand(struct mt19937p* config)
     y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
     y ^= TEMPERING_SHIFT_L(y);
 
-    //return ( (double)y / (unsigned long)0xffffffff ); /* reals */
-    return y;  /* for integer generation */
+    return ( (double)y / (unsigned long)0xffffffff ); /* reals */
+    //return y;  /* for integer generation */
 }

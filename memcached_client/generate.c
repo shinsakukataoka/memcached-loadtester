@@ -56,7 +56,7 @@ struct key_list* generateKeys(struct config* config) {
 
 struct dep_entry* getRandomDepEntry(struct dep_dist* dep_dist, struct worker* worker){
 
-  double cdf_to_lookup = (parRandomFunction(worker) % 100000000)/100000000.0;
+  double cdf_to_lookup = parRandomFunction(worker);
   //Do a binary search
   int top = 0;
   int bottom = dep_dist->n_entries-1;
@@ -74,7 +74,7 @@ struct dep_entry* getRandomDepEntry(struct dep_dist* dep_dist, struct worker* wo
   }
 
  //  printf("top %d bottom %d current %d lookup %f cdf %f\n", top, bottom, current, cdf_to_lookup, dep_entry->cdf);
-
+  dep_entry = dep_dist->dep_entries[current];
   return dep_entry;  
 }
 
