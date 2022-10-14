@@ -16,6 +16,11 @@
 #ifdef FLEXUS
 #include "magic2_breakpoint.h"
 #endif
+
+typedef enum{
+  SCALED_TWITTER, PURE_ZIPFIAN
+} DISTRIBUTION;
+
 struct config {
   int protocol_mode;
 
@@ -58,8 +63,8 @@ struct config {
   int bad_multiget;
 
   uint32_t current_request_uid;
-
-
+  double ALPHA;
+  DISTRIBUTION distribution;
 };
 
 #endif

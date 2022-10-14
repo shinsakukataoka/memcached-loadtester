@@ -26,13 +26,15 @@ void printUsage() {
                 "        [-N arg provide a key population distribution file]\n"
                 "        [-u use UDP protocl (default: TCP)]\n"
                 "        [-o arg  ouput distribution file, if input needs to be scaled]\n"
+                "        [-P set the Zipfian distribution's parameter]\n"
                 "        [-r ATTEMPTED requests per second (default: max out rps)]\n"
                 "        [-s server configuration file]\n"
                 "        [-S dataset scaling factor]\n"
                 "        [-t arg  runtime of loadtesting in seconds (default: run forever)]\n"
                 "        [-T arg  interval between stats printing (default: 1)]\n"
                 "        [-w number of worker threads]\n"
-                "        [-x run timing tests instead of loadtesting]\n");
+                "        [-x run timing tests instead of loadtesting]\n"
+                "        [-Z use pure Zipfian instead of scaled distribution from the twitter dataset\n"   );
 }
 
 
@@ -72,6 +74,8 @@ struct config* parseArgs(int argc, char** argv) {
   config->output_file=NULL;
   config->server_memory=1024;
   config->server_file=NULL;
+  config->ALPHA=0.915;
+  config->distribution = SCALED_TWITTER; 
   int i;
   for(i=0; i<MAX_SERVERS; i++){
     config->server_port[i]=MEMCACHED_PORT;
@@ -79,12 +83,12 @@ struct config* parseArgs(int argc, char** argv) {
   }
 
   int c;
-  while ((c = getopt (argc, argv, "a:c:d:D:ef:g:hi:jk:l:L:m:MnN:o:p:ur:s:S:t:T:w:W:xz")) != -1) {
+  while ((c = getopt (argc, argv, "a:c:d:D:ef:g:hi:jk:l:L:m:MnN:o:p:P:ur:s:S:t:T:w:W:xzZ:")) != -1) {
     switch (c) {
 
       case 'a':
-	config->input_file=calloc(strlen(optarg)+1, sizeof(char));
-  	strcpy(config->input_file, optarg);	
+  	    config->input_file=calloc(strlen(optarg)+1, sizeof(char));
+  	    strcpy(config->input_file, optarg);	
         break;
 
       case 'c':
@@ -185,8 +189,8 @@ struct config* parseArgs(int argc, char** argv) {
         break;
       
       case 'S':
-	config->scaling_factor=atoi(optarg);
-	break;
+	      config->scaling_factor=atoi(optarg);
+	      break;
       
       case 't':
         config->run_time = atoi(optarg);     
@@ -209,6 +213,21 @@ struct config* parseArgs(int argc, char** argv) {
       case 'z':
         config->zynga = 1;     
         break;
+
+      case 'P':
+        config->ALPHA = atof(optarg);     
+        break;
+
+      case 'Z':
+        ;int dist = atoi(optarg);
+        if(dist == 0){
+          config->distribution = SCALED_TWITTER;     
+        }
+        else if (dist == 1){
+          config->distribution = PURE_ZIPFIAN;
+        }
+        break;
+ 
     }
   }
 
