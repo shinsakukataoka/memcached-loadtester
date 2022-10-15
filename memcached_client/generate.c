@@ -29,7 +29,25 @@ char* randomString(int size){
 
     return randomString;
 
-}//End randomStr()
+}//End randomString()
+
+char* parRandomString(int size, struct worker* worker){
+
+        static const char text[] = "abcdefghijklmnopqrstuvwxyz"
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        char* randomString = malloc(sizeof(char) * size);
+
+        int i;
+        for( i = 0; i < size - 1; i++ ){
+                randomString[i] = text[parRandomIntFunction(worker) % (sizeof(text) - 1)];
+        }
+
+        randomString[i++] = '\0';
+
+        return randomString;
+
+}//End parRandomString()
 
 
 struct key_list* generateKeys(struct config* config) {
@@ -246,6 +264,7 @@ struct dep_dist* loadAndScaleDepFile(struct config* config) {
             avg_size+=entry->size; 	
         }
         else if(config->distribution == PURE_ZIPFIAN){
+            char* cdfValue = strtok(lineBuffer, " ,\n"); // it is necessary to correctly parse sizeValue
             char* sizeValue = strtok(NULL, " ,\n");
             struct dep_entry* entry = malloc(sizeof(struct dep_entry));
             double w = (1.0/pow(newLines-i, config->ALPHA))/sum2;
@@ -331,9 +350,14 @@ struct request* generateRequest(struct config* config, struct worker* worker) {
             worker->warmup_key_check++;
             key = dep_entry->key;
             valueSize = dep_entry->size;
-            value = malloc(sizeof(char) * valueSize);
-            memset(value, 'a', sizeof(char) * valueSize);
-            value[valueSize-1] = '\0';
+            if(config->randomValue){
+                value = parRandomString(valueSize, worker);
+            }
+            else{
+                value = malloc(sizeof(char) * valueSize);
+                memset(value, 'a', sizeof(char) * valueSize);
+                value[valueSize-1] = '\0';
+            }
             int op = SET;
             int type = TYPE_SET;
             struct request* request;
@@ -347,7 +371,7 @@ struct request* generateRequest(struct config* config, struct worker* worker) {
         }
         key = dep_entry->key;
         valueSize = dep_entry->size;
-        //printf("key %s valueSize %d\n", key, valueSize);
+        //printf("Generate key %s with valueSize %d\n", key, valueSize);
         //Pick a key
     }else{
         int keyIndex = getIntQuantile(config->key_pop_dist);
@@ -447,9 +471,14 @@ struct request* generateRequest(struct config* config, struct worker* worker) {
                 }
             }
         }
-        value = malloc(sizeof(char) * valueSize);
-        memset(value, 'a', sizeof(char) * valueSize);
-        value[valueSize-1] = '\0';
+        if(config->randomValue){
+            value = parRandomString(valueSize, worker);
+        }
+        else{
+            value = malloc(sizeof(char) * valueSize);
+            memset(value, 'a', sizeof(char) * valueSize);
+            value[valueSize-1] = '\0';
+        }
         request = createRequest(op, conn, worker, key, value, TYPE_SET);
         request->next_request = NULL;
 #ifdef FLEXUS

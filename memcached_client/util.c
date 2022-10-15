@@ -14,9 +14,16 @@ int randomFunction(){
 
 // Let's us replace the  random function
 double parRandomFunction(struct worker* worker){
-  double rand = genrand(&(worker->myMT19937p));
+  double rand = genrand_real(&(worker->myMT19937p));
   return rand;
 }//End parRandomFunction()
+
+
+unsigned long parRandomIntFunction(struct worker* worker){
+  unsigned long rand = genrand_ul(&(worker->myMT19937p));
+  return rand;
+}//End parRandomIntFunction()
+
 
 double round(double d) {
   return floor(d + 0.5);

@@ -65,6 +65,7 @@ struct config {
   uint32_t current_request_uid;
   double ALPHA;
   DISTRIBUTION distribution;
+  int randomValue;
 };
 
 #endif

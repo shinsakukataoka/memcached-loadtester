@@ -32,6 +32,9 @@ struct mt19937p {
 void sgenrand(unsigned long seed, struct mt19937p* config);
 
 double /* generating reals */
-// unsigned long  /* for integer generation */
-genrand(struct mt19937p* config);
+genrand_real(struct mt19937p* config);
+
+unsigned long /* generating unsigned long */
+genrand_ul(struct mt19937p* config);
+
 #endif

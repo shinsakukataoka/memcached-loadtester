@@ -21,6 +21,7 @@ void timestampTest();
 void lockTest();
 int randomFunction();
 double parRandomFunction(struct worker* worker);
+unsigned long parRandomIntFunction(struct worker* worker);
 double round(double d);
 
 

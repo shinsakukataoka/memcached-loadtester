@@ -61,8 +61,7 @@ sgenrand(unsigned long seed, struct mt19937p* config)
 }
 
 double /* generating reals */
-//unsigned long  /* for integer generation */
-genrand(struct mt19937p* config)
+genrand_real(struct mt19937p* config)
 {
     unsigned long y;
     //static unsigned long mag01[2]={0x0, MATRIX_A};
@@ -96,4 +95,41 @@ genrand(struct mt19937p* config)
 
     return ( (double)y / (unsigned long)0xffffffff ); /* reals */
     //return y;  /* for integer generation */
+}
+
+unsigned long /* generating unsigned long */
+genrand_ul(struct mt19937p* config)
+{
+    unsigned long y;
+    //static unsigned long mag01[2]={0x0, MATRIX_A};
+    /* mag01[x] = x * MATRIX_A  for x=0,1 */
+
+    if (config->mti >= N) { /* generate N words at one time */
+        int kk;
+
+/*        if (config->mti == N+1)*/   /* if sgenrand() has not been called, */
+/*            sgenrand(4357);*/ /* a default initial seed is used   */
+
+        for (kk=0;kk<N-M;kk++) {
+            y = (config->mt[kk]&UPPER_MASK)|(config->mt[kk+1]&LOWER_MASK);
+            config->mt[kk] = config->mt[kk+M] ^ (y >> 1) ^ config->mag01[y & 0x1];
+        }
+        for (;kk<N-1;kk++) {
+            y = (config->mt[kk]&UPPER_MASK)|(config->mt[kk+1]&LOWER_MASK);
+            config->mt[kk] = config->mt[kk+(M-N)] ^ (y >> 1) ^ config->mag01[y & 0x1];
+        }
+        y = (config->mt[N-1]&UPPER_MASK)|(config->mt[0]&LOWER_MASK);
+        config->mt[N-1] = config->mt[M-1] ^ (y >> 1) ^ config->mag01[y & 0x1];
+
+        config->mti = 0;
+    }
+  
+    y = config->mt[config->mti++];
+    y ^= TEMPERING_SHIFT_U(y);
+    y ^= TEMPERING_SHIFT_S(y) & TEMPERING_MASK_B;
+    y ^= TEMPERING_SHIFT_T(y) & TEMPERING_MASK_C;
+    y ^= TEMPERING_SHIFT_L(y);
+
+    //return ( (double)y / (unsigned long)0xffffffff ); /* reals */
+    return y;  /* for integer generation */
 }

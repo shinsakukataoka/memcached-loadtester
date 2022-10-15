@@ -26,8 +26,9 @@ void printUsage() {
                 "        [-N arg provide a key population distribution file]\n"
                 "        [-u use UDP protocl (default: TCP)]\n"
                 "        [-o arg  ouput distribution file, if input needs to be scaled]\n"
-                "        [-P set the Zipfian distribution's parameter]\n"
+                "        [-P arg  set the Zipfian distribution's parameter]\n"
                 "        [-r ATTEMPTED requests per second (default: max out rps)]\n"
+                "        [-R the keys' values are random strings instead of a sequence of 'a']\n"
                 "        [-s server configuration file]\n"
                 "        [-S dataset scaling factor]\n"
                 "        [-t arg  runtime of loadtesting in seconds (default: run forever)]\n"
@@ -76,6 +77,8 @@ struct config* parseArgs(int argc, char** argv) {
   config->server_file=NULL;
   config->ALPHA=0.915;
   config->distribution = SCALED_TWITTER; 
+  config->randomValue = 0;
+  
   int i;
   for(i=0; i<MAX_SERVERS; i++){
     config->server_port[i]=MEMCACHED_PORT;
@@ -83,7 +86,7 @@ struct config* parseArgs(int argc, char** argv) {
   }
 
   int c;
-  while ((c = getopt (argc, argv, "a:c:d:D:ef:g:hi:jk:l:L:m:MnN:o:p:P:ur:s:S:t:T:w:W:xzZ:")) != -1) {
+  while ((c = getopt (argc, argv, "a:c:d:D:ef:g:hi:jk:l:L:m:MnN:o:p:P:ur:Rs:S:t:T:w:W:xzZ")) != -1) {
     switch (c) {
 
       case 'a':
@@ -219,15 +222,12 @@ struct config* parseArgs(int argc, char** argv) {
         break;
 
       case 'Z':
-        ;int dist = atoi(optarg);
-        if(dist == 0){
-          config->distribution = SCALED_TWITTER;     
-        }
-        else if (dist == 1){
-          config->distribution = PURE_ZIPFIAN;
-        }
+        config->distribution = PURE_ZIPFIAN;
         break;
- 
+
+      case 'R':
+        config->randomValue = 1;
+        break;
     }
   }
 
