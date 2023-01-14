@@ -13,16 +13,17 @@ int randomFunction(){
 }
 
 // Let's us replace the  random function
-int parRandomFunction(struct worker* worker){
-  //return rand();
-//  return genrand_int32();
-//  printf("generating rand...");
-  int rand_int = genrand(&(worker->myMT19937p));
-  //printf("rand int %d\n", rand_int);
-  //int rand_int = rand();
-//  printf("Done\n");
-  return rand_int;
-}//End randomFunction()
+double parRandomFunction(struct worker* worker){
+  double rand = genrand_real(&(worker->myMT19937p));
+  return rand;
+}//End parRandomFunction()
+
+
+unsigned long parRandomIntFunction(struct worker* worker){
+  unsigned long rand = genrand_ul(&(worker->myMT19937p));
+  return rand;
+}//End parRandomIntFunction()
+
 
 double round(double d) {
   return floor(d + 0.5);

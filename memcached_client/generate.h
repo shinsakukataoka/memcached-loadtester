@@ -9,7 +9,7 @@
 
 #define MAX_KEY_SIZE 250
 #define CDF_VALUES 10000
-#define ALPHA 0.915
+//#define ALPHA 0.915
 
 #define ARRIVAL_CONSTANT 0
 #define ARRIVAL_EXPONENTIAL 1

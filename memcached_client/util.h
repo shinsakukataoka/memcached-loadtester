@@ -20,7 +20,8 @@ void timingTests();
 void timestampTest();
 void lockTest();
 int randomFunction();
-int parRandomFunction(struct worker* worker);
+double parRandomFunction(struct worker* worker);
+unsigned long parRandomIntFunction(struct worker* worker);
 double round(double d);
 
 
