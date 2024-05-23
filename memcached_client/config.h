@@ -33,7 +33,7 @@ struct config {
   int n_connections_total;
 
   int run_time;
-  int stats_time;
+  float stats_time;
   int naggles;
   int multiget_size;
   char* server_ip_address[MAX_SERVERS];

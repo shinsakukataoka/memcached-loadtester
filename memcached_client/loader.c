@@ -200,7 +200,7 @@ struct config* parseArgs(int argc, char** argv) {
         break;
 
       case 'T':
-        config->stats_time = atoi(optarg); 
+        config->stats_time = atof(optarg); 
         printf("stats_time = %d\n", config->stats_time);    
         break;
 
