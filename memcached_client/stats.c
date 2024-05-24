@@ -97,43 +97,55 @@ double findQuantile(struct stat* stat, double quantile) {
 
 }//End findQuantile()
 
-void printGlobalStats(struct config* config) {
+void printGlobalStats(struct config* config, int final) {
 
-  pthread_mutex_lock(&stats_lock);
-  struct timeval currentTime;
-  gettimeofday(&currentTime, NULL);
-  double timeDiff = currentTime.tv_sec - global_stats.last_time.tv_sec + 1e-6 * (currentTime.tv_usec - global_stats.last_time.tv_usec);
-  double rps = global_stats.requests/timeDiff;
-  double std = getStdDev(&global_stats.response_time);
-  double q90 = findQuantile(&global_stats.response_time, .90);
-  double q95 = findQuantile(&global_stats.response_time, .95);
-  double q99 = findQuantile(&global_stats.response_time, .99);
+    pthread_mutex_lock(&stats_lock);
+    struct timeval currentTime;
+    gettimeofday(&currentTime, NULL);
+    double timeDiff = currentTime.tv_sec - global_stats.last_time.tv_sec + 1e-6 * (currentTime.tv_usec - global_stats.last_time.tv_usec);
+    double rps = global_stats.requests / timeDiff;
+    double std = getStdDev(&global_stats.response_time);
+    double q90 = findQuantile(&global_stats.response_time, .90);
+    double q95 = findQuantile(&global_stats.response_time, .95);
+    double q99 = findQuantile(&global_stats.response_time, .99);
 
-  printf("%10s,%10s,%8s,%16s, %8s,%11s,%10s,%13s,%10s,%10s,%10s,%12s,%10s,%10s,%11s,%14s\n", "unix_ts", "timeDiff", "rps", "requests", "gets", "sets",  "hits", "misses", "avg_lat", "90th", "95th", "99th", "std", "min", "max", "avgGetSize");
-  printf("%10ld, %10f, %9.1f,  %10d, %10d, %10d, %10d, %10d, %10f, %10f, %10f, %10f, %10f, %10f, %10f, %10f\n", 
-		currentTime.tv_sec, timeDiff, rps, global_stats.requests, global_stats.gets, global_stats.sets, global_stats.hits, global_stats.misses,
-		1000*getAvg(&global_stats.response_time), 1000*q90, 1000*q95, 1000*q99, 1000*std, 1000*global_stats.response_time.min, 1000*global_stats.response_time.max, getAvg(&global_stats.get_size));
-  int i;
-  printf("Outstanding requests per worker:\n");
-  for(i=0; i<config->n_workers; i++){
-    printf("%d ", config->workers[i]->n_requests);
-  } 
-  printf("\n");
-  //Reset stats
-  memset(&global_stats, 0, sizeof(struct memcached_stats));
-  global_stats.response_time.min = 1000000;
-  global_stats.last_time = currentTime;
+    if (final) {
+        printf("\nFinal Stats Summary:\n");
+    } else {
+        printf("Current Stats:\n");
+    }
 
-  checkExit(config);
-  pthread_mutex_unlock(&stats_lock);
+    printf("%10s,%10s,%8s,%16s, %8s,%11s,%10s,%13s,%10s,%10s,%10s,%12s,%10s,%10s,%11s,%14s\n", 
+           "unix_ts", "timeDiff", "rps", "requests", "gets", "sets",  "hits", "misses", "avg_lat", "90th", "95th", "99th", "std", "min", "max", "avgGetSize");
+    printf("%10ld, %10f, %9.1f,  %10d, %10d, %10d, %10d, %10d, %10f, %10f, %10f, %10f, %10f, %10f, %10f, %10f\n", 
+           currentTime.tv_sec, timeDiff, rps, global_stats.requests, global_stats.gets, global_stats.sets, global_stats.hits, global_stats.misses,
+           1000 * getAvg(&global_stats.response_time), 1000 * q90, 1000 * q95, 1000 * q99, 1000 * std, 1000 * global_stats.response_time.min, 1000 * global_stats.response_time.max, getAvg(&global_stats.get_size));
 
+    if (!final) {
+        int i;
+        printf("Outstanding requests per worker:\n");
+        for (i = 0; i < config->n_workers; i++) {
+            printf("%d ", config->workers[i]->n_requests);
+        }
+        printf("\n");
+
+        // Reset stats
+        memset(&global_stats, 0, sizeof(struct memcached_stats));
+        global_stats.response_time.min = 1000000;
+        global_stats.last_time = currentTime;
+    }
+
+    checkExit(config);
+    pthread_mutex_unlock(&stats_lock);
 }//End printGlobalStats()
+//End printGlobalStats()
 
 
 //Print out statistics every second
 void statsLoop(struct config* config) {
     pthread_mutex_lock(&stats_lock);
     gettimeofday(&start_time, NULL);
+    global_stats.last_time = start_time;
     pthread_mutex_unlock(&stats_lock);
 
     struct timespec ts;
@@ -145,12 +157,20 @@ void statsLoop(struct config* config) {
     printf("-------------------------\n");
 
     while (1) {
-        printGlobalStats(config);
+        struct timeval currentTime;
+        gettimeofday(&currentTime, NULL);
+        double totalTime = currentTime.tv_sec - start_time.tv_sec + 1e-6 * (currentTime.tv_usec - start_time.tv_usec);
+        
+        if (totalTime >= config->run_time && config->run_time > 0) {
+            printGlobalStats(config, 1);  // Final print
+            break;
+        } else {
+            printGlobalStats(config, 0);  // Regular print
+        }
 
         ts.tv_sec = (int)config->stats_time;
         ts.tv_nsec = (config->stats_time - ts.tv_sec) * 1e9;
 
         nanosleep(&ts, NULL);
     }
-}//End statisticsLoop()
-
+}//End statsLoop()
