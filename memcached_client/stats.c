@@ -15,6 +15,9 @@ struct memcached_stats global_stats;
 
 int count = 0;
 double cumulative_mean_rps = 0.0;
+double cumulative_sum_rps = 0.0;
+double cumulative_sum_sq_rps = 0.0;
+
 
 
 void addSample(struct stat* stat, float value) {
@@ -112,18 +115,22 @@ void printGlobalStats(struct config* config) {
     double q95 = findQuantile(&global_stats.response_time, .95);
     double q99 = findQuantile(&global_stats.response_time, .99);
 
-    // Update cumulative mean RPS
     count++;
-    cumulative_mean_rps = ((cumulative_mean_rps * (count - 1)) + rps) / count;
+    cumulative_sum_rps += rps;
+    cumulative_sum_sq_rps += rps * rps;
+    cumulative_mean_rps = cumulative_sum_rps / count;
+    double variance_rps = (cumulative_sum_sq_rps / count) - (cumulative_mean_rps * cumulative_mean_rps);
+    double cumulative_std_rps = sqrt(variance_rps);
+    double cumulative_cv_rps = cumulative_mean_rps ? cumulative_std_rps / cumulative_mean_rps : 0.0;
 
-    printf("%10s,%10s,%8s,%16s, %8s,%11s,%10s,%13s,%10s,%10s,%10s,%12s,%10s,%10s,%11s,%14s,%10s,%20s\n", 
+    printf("%10s,%10s,%8s,%16s, %8s,%11s,%10s,%13s,%10s,%10s,%10s,%12s,%10s,%10s,%11s,%14s,%10s,%20s,%20s,%20s\n", 
         "unix_ts", "timeDiff", "rps", "requests", "gets", "sets", "hits", "misses", "avg_lat", "90th", "95th", "99th", 
-        "std", "min", "max", "avgGetSize", "count", "cumulative_mean_rps");
+        "std", "min", "max", "avgGetSize", "count", "cumulative_mean_rps", "cumulative_std_rps", "cumulative_cv_rps");
 
-    printf("%10ld, %10f, %9.1f, %10d, %10d, %10d, %10d, %10d, %10f, %10f, %10f, %10f, %10f, %10f, %10f, %10f, %10d, %20.10f\n", 
+    printf("%10ld, %10f, %9.1f, %10d, %10d, %10d, %10d, %10d, %10f, %10f, %10f, %10f, %10f, %10f, %10f, %10f, %10d, %20.10f, %20.10f, %20.10f\n", 
         currentTime.tv_sec, timeDiff, rps, global_stats.requests, global_stats.gets, global_stats.sets, global_stats.hits, global_stats.misses,
         1000 * getAvg(&global_stats.response_time), 1000 * q90, 1000 * q95, 1000 * q99, 1000 * std, 1000 * global_stats.response_time.min, 
-        1000 * global_stats.response_time.max, getAvg(&global_stats.get_size), count, cumulative_mean_rps);
+        1000 * global_stats.response_time.max, getAvg(&global_stats.get_size), count, cumulative_mean_rps, cumulative_std_rps, cumulative_cv_rps);
 
     int i;
     printf("Outstanding requests per worker:\n");
