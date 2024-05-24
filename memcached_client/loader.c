@@ -261,6 +261,7 @@ void printConfiguration(struct config* config) {
   printf("Configuration:\n");
   printf("\n");
   printf("nProcessors on system: %d\n", config->n_cpus);
+  printf("nProcessors on system: %d\n", config->n_cpus);
   printf("nWorkers: %d\n", config->n_workers);
   printf("runtime: %d\n", config->run_time);
 
