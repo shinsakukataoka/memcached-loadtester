@@ -200,9 +200,8 @@ struct config* parseArgs(int argc, char** argv) {
         break;
 
       case 'T':
-        config->stats_time = atoi(optarg); 
-        printf("stats_time = %d\n", config->stats_time);    
-        printf("debug");
+        config->stats_time = atof(optarg); 
+        printf("stats_time = %.2f\n", config->stats_time);    
         break;
 
       case 'w':
