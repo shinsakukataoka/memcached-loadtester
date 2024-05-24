@@ -132,20 +132,25 @@ void printGlobalStats(struct config* config) {
 
 //Print out statistics every second
 void statsLoop(struct config* config) {
+    pthread_mutex_lock(&stats_lock);
+    gettimeofday(&start_time, NULL);
+    pthread_mutex_unlock(&stats_lock);
 
-  pthread_mutex_lock(&stats_lock);
-  gettimeofday(&start_time, NULL);
-  pthread_mutex_unlock(&stats_lock);
+    struct timespec ts;
+    ts.tv_sec = 2;
+    ts.tv_nsec = 0;
+    nanosleep(&ts, NULL);
 
-  sleep(2);
-  printf("Stats:\n");
-  printf("-------------------------\n");
-  while(1) {
-    printGlobalStats(config);
-    // sleep(config->stats_time);
-    usleep(config->stats_time * 1000000);
-  }//End while()
+    printf("Stats:\n");
+    printf("-------------------------\n");
 
+    while (1) {
+        printGlobalStats(config);
 
+        ts.tv_sec = (int)config->stats_time;
+        ts.tv_nsec = (config->stats_time - ts.tv_sec) * 1e9;
+
+        nanosleep(&ts, NULL);
+    }
 }//End statisticsLoop()
 

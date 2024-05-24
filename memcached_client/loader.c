@@ -201,7 +201,7 @@ struct config* parseArgs(int argc, char** argv) {
 
       case 'T':
         config->stats_time = atof(optarg); 
-        printf("stats_time = %.2f\n", config->stats_time);    
+        printf("stats_time = %.10f\n", config->stats_time);    
         break;
 
       case 'w':
