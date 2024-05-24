@@ -102,7 +102,7 @@ void printGlobalStats(struct config* config) {
   pthread_mutex_lock(&stats_lock);
   struct timeval currentTime;
   gettimeofday(&currentTime, NULL);
-  double timeDiff = currentTime.tv_sec - global_stats.last_time.tv_sec + 1e-6*(currentTime.tv_sec - global_stats.last_time.tv_sec);
+  double timeDiff = currentTime.tv_sec - global_stats.last_time.tv_sec + 1e-6 * (currentTime.tv_usec - global_stats.last_time.tv_usec);
   double rps = global_stats.requests/timeDiff;
   double std = getStdDev(&global_stats.response_time);
   double q90 = findQuantile(&global_stats.response_time, .90);
