@@ -142,7 +142,8 @@ void statsLoop(struct config* config) {
   printf("-------------------------\n");
   while(1) {
     printGlobalStats(config);
-    sleep(config->stats_time);
+    // sleep(config->stats_time);
+    usleep(config->stats_time * 1000000);
   }//End while()
 
 
